@@ -5,12 +5,12 @@ set -Eeuo pipefail
 # prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
 # No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
-# Standalone Kaggle cell: V01 | VTAB-DTD / ViT-B/16 / BS32 — all 5 methods | all methods in one <=12h session
+# Standalone Kaggle cell: V02 | VTAB-EuroSAT / ViT-B/16 / BS32 — all 5 methods | all methods in one <=12h session
 # Methods: whc_dt1d,vpt,pfeiffer,full,linear
 # Fair protocol: 10 LR candidates/method on tune seed 42 -> final seeds 0/1/2 -> test once at best-validation checkpoint.
 # Estimated 2xT4 wall time: ~11.50 h conservative (shared setup should reduce this); hard cutoff is 11 h 55 min with resumable ZIP.
 
-SESSION_ID="V01"; DATASET="vtab-dtd"; BATCH_SIZE="32"; METHOD="whc_dt1d,vpt,pfeiffer,full,linear"; VPT_TOKENS="10"
+SESSION_ID="V02"; DATASET="vtab-eurosat"; BATCH_SIZE="32"; METHOD="whc_dt1d,vpt,pfeiffer,full,linear"; VPT_TOKENS="10"
 REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git"; REPO_COMMIT="${DT1D_VIT_COMMIT:-}"; WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID"
 DATA_ROOT="$WORKDIR/data_$SESSION_ID";MODEL_ROOT="$WORKDIR/models_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"

@@ -1,0 +1,133 @@
+{
+  "version": "v3",
+  "fix": "Create MODEL_ROOT before ViT checkpoint download; use atomic .part download then rename.",
+  "patched_sessions": [
+    "P03",
+    "V01",
+    "V02"
+  ],
+  "training_session_count": 23,
+  "has_final_merge": true,
+  "session_files": [
+    {
+      "session": "A01",
+      "file": "A01_a01_dtd_resnet_18_ablation_hyperparameter_sensitivity_all_3_seeds_in_one_12h_ses.sh",
+      "sha256": "66d94b6508c29f166e00244e6b989e4942b09ee2d24a10d56f6131864d6b598f"
+    },
+    {
+      "session": "A02",
+      "file": "A02_a02_flowers102_efficientnet_b0_ablation_hyperparameter_sensitivity_all_3_seeds_i.sh",
+      "sha256": "3e9a656b570a72eedaa458bcb0502020411de6b1e5edd0e24f89c54f03149241"
+    },
+    {
+      "session": "P01",
+      "file": "P01_p01_updated_proposal_only_rerun_across_5_existing_cnn_experiments.sh",
+      "sha256": "3803dcbc18068383a3e3d96ae347902c5ce8e688f629a6e790e25878f9faf163"
+    },
+    {
+      "session": "P02",
+      "file": "P02_p02_updated_proposal_only_rerun_across_4_existing_binary_dense_prediction_experi.sh",
+      "sha256": "f3da62ba90eda5ece7f13145f42a363060ad3628bb223c4499837aa6c6f2271b"
+    },
+    {
+      "session": "P03",
+      "file": "P03_p03_proposal_only_vit_fair_reruns_flowers102_bs16_bs32_and_vtab_caltech101_bs32.sh",
+      "sha256": "0871ce45bb7e1aa2f01cf5355f8c9f617ae8c7089a94bb18263a7290b36ebab8"
+    },
+    {
+      "session": "C01",
+      "file": "C01_c01_dtd_resnet_50_100ep_bs128_all_9_methods_compact_12h_session_updated_whc_prop.sh",
+      "sha256": "89284da1727573954888d76353ef3ca6a25f0a5817da6967940423785142270c"
+    },
+    {
+      "session": "C02",
+      "file": "C02_c02_flowers102_resnet_50_100ep_bs128_all_9_methods_compact_12h_session_updated_w.sh",
+      "sha256": "cc1841fc3911bee681e151bfb2e2c3e77a308ffce60ee173a12e082fa359e9a5"
+    },
+    {
+      "session": "C03",
+      "file": "C03_c03_flowers102_resnet_18_100ep_bs64_all_9_methods_compact_12h_session_updated_wh.sh",
+      "sha256": "25bbfe76453d6640b4173db745d5d87cc5bc4c95b93f85bb57673294e559342e"
+    },
+    {
+      "session": "C04",
+      "file": "C04_c04_flowers102_resnet_18_100ep_bs32_all_9_methods_compact_12h_session_updated_wh.sh",
+      "sha256": "4a4941615b2dc0901d66a89162673f58b8ed6b4f627efe50bf97272d02d4ca4b"
+    },
+    {
+      "session": "C05",
+      "file": "C05_c05_oxford_iiit_pet_efficientnet_b0_10ep_bs64_all_9_methods_compact_12h_session_.sh",
+      "sha256": "ddd692d0fd0c3067332c277dc18436cdce928835305300bba9825a9892d58138"
+    },
+    {
+      "session": "C06",
+      "file": "C06_c06_oxford_iiit_pet_efficientnet_b0_100ep_bs64_all_9_methods_compact_12h_session.sh",
+      "sha256": "aa01217518143adececb470e9ebbfc33a903b95afe3a4b32d4dccab1cf9449d9"
+    },
+    {
+      "session": "C07",
+      "file": "C07_c07_eurosat_mobilenetv3_small_25ep_bs32_all_9_methods_compact_12h_session_update.sh",
+      "sha256": "13e874427a16015afb45d64f7685b951b345d17833f8f07f32731d9e98d73650"
+    },
+    {
+      "session": "C08",
+      "file": "C08_c08_svhn_resnet_50_10ep_bs128_split_1_3_would_exceed_12h_as_one_session_compact_.sh",
+      "sha256": "72dd317a3cdd90179670c4195c4b978cc3138e129da8b6c89dbd3e670a766926"
+    },
+    {
+      "session": "C09",
+      "file": "C09_c09_svhn_resnet_50_10ep_bs128_split_2_3_compact_12h_session_updated_whc_proposal.sh",
+      "sha256": "f6d4632234ec560ee560b5d602ab364d3e9ae9e8e293b272e7467810dc3fbd16"
+    },
+    {
+      "session": "C10",
+      "file": "C10_c10_svhn_resnet_50_10ep_bs128_split_3_3_compact_12h_session_updated_whc_proposal.sh",
+      "sha256": "81a8ff534641c8566092ccfac4f9fb844fa76a232115d3980f48c25ffa68be57"
+    },
+    {
+      "session": "C11",
+      "file": "C11_c11_food_101_efficientnet_b0_10ep_bs64_split_1_2_all_methods_would_exceed_12h_co.sh",
+      "sha256": "4781abead899fea18777a3d9c5b32bd1caf0d61462f93edbb18b5a87de0339e1"
+    },
+    {
+      "session": "C12",
+      "file": "C12_c12_food_101_efficientnet_b0_10ep_bs64_split_2_2_compact_12h_session_updated_whc.sh",
+      "sha256": "534e7a7c03163d7ef7c1ecd2dde3ce59f1904669ca15bd128c24dc8af200e556"
+    },
+    {
+      "session": "C13",
+      "file": "C13_c13_food_101_resnet_18_10ep_bs32_split_1_2_all_methods_would_exceed_12h_compact_.sh",
+      "sha256": "eeaa3ceca74214679cc473cc1f3a0762afd05d9b139339d5490c5223114ef5ac"
+    },
+    {
+      "session": "C14",
+      "file": "C14_c14_food_101_resnet_18_10ep_bs32_split_2_2_compact_12h_session_updated_whc_propo.sh",
+      "sha256": "78d64d891bed8a832ae34a66353a71dd6c9a916ac088a4104f24fa0952e58bd6"
+    },
+    {
+      "session": "D01",
+      "file": "D01_d01_oxford_iiit_pet_semantic_deeplabv3_mobilenetv3_5ep_bs8_all_9_methods_updated.sh",
+      "sha256": "44884924aada767ea14a849919d905e7dbfed21bd8cd7a5b91edd785909f6933"
+    },
+    {
+      "session": "D02",
+      "file": "D02_d02_oxford_iiit_pet_detection_faster_r_cnn_mobilenetv3_fpn_1ep_bs1_all_9_methods.sh",
+      "sha256": "544514824a28b0d3bd8e51f1ffbb7c39fe279a5007c8d72dde29e51c82c68672"
+    },
+    {
+      "session": "V01",
+      "file": "V01_v01_vtab_dtd_vit_b_16_bs32_all_5_methods_all_methods_in_one_12h_session.sh",
+      "sha256": "14b764ff5c48f3458d64388652f61d3c1029196931d3d0cf58868adedf225dda"
+    },
+    {
+      "session": "V02",
+      "file": "V02_v02_vtab_eurosat_vit_b_16_bs32_all_5_methods_all_methods_in_one_12h_session.sh",
+      "sha256": "51bfd9414ef637f60644c9d052336a3cbeeabd761a5908681ea495e99b0efe0f"
+    },
+    {
+      "session": "MERGE",
+      "file": "FINAL_MERGE.sh",
+      "sha256": "13ea71aa80e8e5fa1b1fbfc0fe7e13134c47ed97dc5e82c968cdc11e1e703c4d"
+    }
+  ]
+}
