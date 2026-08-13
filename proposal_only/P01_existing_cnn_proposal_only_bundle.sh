@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 # Standalone Kaggle cell: P01 | UPDATED proposal-only rerun across 5 existing CNN experiments
 # Targets: table_05, table_09, figure_04, table_14_15, figure_01
 # Method: dt1d (updated WHC-Compact-DT1D implementation), seeds 0,1,2
@@ -7,7 +11,7 @@ set -Eeuo pipefail
 # Only bundled because total estimate is below 12 h. Hard cutoff: 11 h 55 min; resumable ZIP.
 SESSION_ID="P01"; TARGETS="table_05,table_09,figure_04,table_14_15,figure_01"; METHODS="dt1d"; SEEDS="0,1,2"
 REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"; REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
-WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/dt1d_shared_data"; OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/data_$SESSION_ID"; OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID TARGETS METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 pack_results() {
@@ -24,7 +28,19 @@ PYZIP
   ls -lh "$RESULT_ZIP" || true; fi
 }
 trap 'rc=$?; trap - EXIT; [[ -f "$RESULT_ZIP" ]] || pack_results || true; exit $rc' EXIT
-rm -rf "$REPO_DIR"; git clone --depth 1 "$REPO_URL" "$REPO_DIR"; cd "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
+cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then git fetch --depth 1 origin "$REPO_COMMIT"; git checkout --detach "$REPO_COMMIT"; [[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]]; fi
 SOURCE_COMMIT="$(git rev-parse HEAD)"; export SOURCE_COMMIT; echo "SOURCE_COMMIT=$SOURCE_COMMIT"
 python - <<'PYSOURCE'
@@ -83,6 +99,7 @@ if zs:
  shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 # Preload all datasets/backbones once.
 python - <<'PYPRELOAD'
 import os,yaml

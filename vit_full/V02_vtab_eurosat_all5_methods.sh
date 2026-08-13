@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: V02 | VTAB-EuroSAT / ViT-B/16 / BS32 — all 5 methods | all methods in one <=12h session
 # Methods: whc_dt1d,vpt,pfeiffer,full,linear
@@ -8,7 +12,7 @@ set -Eeuo pipefail
 
 SESSION_ID="V02"; DATASET="vtab-eurosat"; BATCH_SIZE="32"; METHOD="whc_dt1d,vpt,pfeiffer,full,linear"; VPT_TOKENS="10"
 REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git"; REPO_COMMIT="${DT1D_VIT_COMMIT:-}"; WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID"
-DATA_ROOT="$WORKDIR/vit_shared_data";MODEL_ROOT="$WORKDIR/vit_weights";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID";MODEL_ROOT="$WORKDIR/models_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID DATASET BATCH_SIZE METHOD VPT_TOKENS REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 
@@ -31,8 +35,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_VIT_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -64,6 +78,17 @@ print('VIT SOURCE SNAPSHOT PASS')
 PYSOURCE
 
 python -m pip install -q --upgrade-strategy only-if-needed scipy scikit-learn pandas Pillow fvcore iopath yacs simplejson termcolor tabulate tqdm ml-collections 'timm>=1.0.0,<2' PyYAML tensorflow-datasets six
+if ! python - <<'PYTFIMPORT'
+import tensorflow
+print('tensorflow:', tensorflow.__version__)
+PYTFIMPORT
+then
+  python -m pip install -q 'tensorflow>=2.16,<2.20'
+fi
+python - <<'PYTFIMPORT2'
+import tensorflow, tensorflow_datasets
+print('tensorflow/tfds import: PASS')
+PYTFIMPORT2
 python validate_whc_p2_vit.py
 python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py
 python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py tests/test_fair_protocol.py tests/test_dt1d_token_adapter.py
@@ -99,7 +124,8 @@ if zs:
     if len(found)==1:shutil.move(str(found[0]),str(out));print('RESTORED',z,'score=',score(z))
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
-mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT" "$MODEL_ROOT"
+mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT" "$MODEL_ROOT"
 
 # Add the two additional VTAB dataset registry entries at runtime only; model/baseline implementations remain unchanged.
 python - <<'PYPATCH'

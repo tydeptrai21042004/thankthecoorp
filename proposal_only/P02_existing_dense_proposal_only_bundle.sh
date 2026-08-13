@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 # Standalone Kaggle cell: P02 | UPDATED proposal-only rerun across 4 existing binary dense-prediction experiments
 # Targets: binary_vit_drive,binary_deeplab_drive,binary_vit_pennfudan,binary_deeplab_pennfudan
 # Method whc_dt, seeds 0,1,2. Conservative summed estimate ~10.40 h on 2xT4; hard cutoff 11 h 55 min, resumable.
 SESSION_ID="P02"; TARGETS="binary_vit_drive,binary_deeplab_drive,binary_vit_pennfudan,binary_deeplab_pennfudan"; METHODS="whc_dt"; SEEDS="0,1,2"
-REPO_URL="https://github.com/tydeptrai21042004/dt1d.git";REPO_COMMIT="${DT1D_CNN_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/dt1d-$SESSION_ID";DATA_ROOT="$WORKDIR/dt1d_shared_data";OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+REPO_URL="https://github.com/tydeptrai21042004/dt1d.git";REPO_COMMIT="${DT1D_CNN_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/dt1d-$SESSION_ID";DATA_ROOT="$WORKDIR/data_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)";DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))";export SESSION_ID TARGETS METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 pack_results() { if [[ -d "$OUTPUT_ROOT" ]];then python - <<'PYZIP'
 import os,zipfile
@@ -17,7 +21,19 @@ print(d)
 PYZIP
 ls -lh "$RESULT_ZIP" || true;fi; }
 trap 'rc=$?; trap - EXIT; [[ -f "$RESULT_ZIP" ]] || pack_results || true; exit $rc' EXIT
-rm -rf "$REPO_DIR";git clone --depth 1 "$REPO_URL" "$REPO_DIR";cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
+cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi
 SOURCE_COMMIT="$(git rev-parse HEAD)";export SOURCE_COMMIT
 python - <<'PYSOURCE'
 import hashlib, os
@@ -71,6 +87,7 @@ if zs:
  shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 # Preload all required official datasets and weights once.
 python - <<'PYPRELOAD'
 import os,shutil,urllib.request,yaml
@@ -80,14 +97,30 @@ m=yaml.safe_load(Path('configs/dense/dense_prediction_manifest.yaml').read_text(
 for t in targets:
  s=m['targets'][t];ds=s['dataset'];pipe=s['pipeline'];print('PRELOAD',t,ds,pipe)
  if ds=='drive' and 'drive' not in seen:
-  dst=root/'DRIVE';req=[dst/'training/images',dst/'training/1st_manual',dst/'test/images',dst/'test/1st_manual']
-  if not all(p.is_dir() for p in req):
-   found=None
-   for tr in Path('/kaggle/input').rglob('training') if Path('/kaggle/input').exists() else []:
-    b=tr.parent;r=[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
-    if all(p.is_dir() for p in r):found=b;break
-   if found is None:raise RuntimeError('Official DRIVE not found as Kaggle Input.')
-   shutil.copytree(found,dst,dirs_exist_ok=True)
+  dst=root/'DRIVE';req=lambda b:[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
+  def valid(b): return b.is_dir() and all(p.is_dir() for p in req(b))
+  found=None
+  # 1) Explicit authorized/local source path (recommended for reproducibility).
+  env_dir=os.environ.get('DRIVE_DATA_DIR','').strip()
+  if env_dir and valid(Path(env_dir)): found=Path(env_dir)
+  # 2) Attached Kaggle Input containing the historical DRIVE training/test + 1st_manual layout.
+  if found is None and Path('/kaggle/input').exists():
+   for tr in Path('/kaggle/input').rglob('training'):
+    if valid(tr.parent): found=tr.parent; break
+  # 3) Optional authorized direct archive URL supplied by the user.
+  #    The official Grand Challenge distribution requires account access, so no unauthenticated mirror is hard-coded.
+  if found is None:
+   url=os.environ.get('DRIVE_ARCHIVE_URL','').strip()
+   if url:
+    arc=root/'drive_authorized_download.zip';urllib.request.urlretrieve(url,arc);tmp=root/'_drive_extract';shutil.rmtree(tmp,ignore_errors=True);tmp.mkdir()
+    shutil.unpack_archive(str(arc),str(tmp))
+    for tr in tmp.rglob('training'):
+     if valid(tr.parent): found=tr.parent; break
+  if found is None:
+   raise RuntimeError('DRIVE access is required for P02. Attach the authorized DRIVE dataset as a Kaggle Input (training/images, training/1st_manual, test/images, test/1st_manual), or set DRIVE_DATA_DIR / DRIVE_ARCHIVE_URL. This cell does not depend on any earlier cell.')
+  shutil.copytree(found,dst,dirs_exist_ok=True)
+  assert valid(dst), dst
+  print('DRIVE READY:',dst)
   seen.add('drive')
  if ds=='pennfudan' and 'pennfudan' not in seen:
   dst=root/'PennFudanPed'

@@ -1,141 +1,627 @@
 {
+  "package": "kaggle_cell_DT1D_WHC_standalone_fresh",
   "training_session_count": 23,
-  "shell_script_count_including_merge": 24,
-  "bash_syntax_pass": true,
-  "bash_results": [
-    {
-      "file": "FINAL_MERGE_ALL_RESULTS.sh",
-      "bash_n": true,
-      "stderr": ""
-    },
+  "final_merge_count": 1,
+  "training_shell_checks": [
     {
       "file": "ablation_hyper/A01_dtd_r18_ablation_hyper_3seed.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "ablation_hyper/A02_flowers_b0_ablation_hyper_3seed.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C01_dtd_r50_100ep_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C02_flowers_r50_100ep_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C03_flowers_r18_100ep_bs64_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C04_flowers_r18_100ep_bs32_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C05_pet_b0_10ep_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C06_pet_b0_100ep_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C07_eurosat_mnv3_25ep_all_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C08_svhn_r50_part1of3.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C09_svhn_r50_part2of3.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C10_svhn_r50_part3of3.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C11_food101_b0_part1of2.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C12_food101_b0_part2of2.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C13_food101_r18_part1of2.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "cnn_full/C14_food101_r18_part2of2.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "dense_full/D01_semantic_pet_deeplab_all9.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "dense_full/D02_detection_pet_fasterrcnn_all9.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "proposal_only/P01_existing_cnn_proposal_only_bundle.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "proposal_only/P02_existing_dense_proposal_only_bundle.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "proposal_only/P03_existing_vit_proposal_only_bundle.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "vit_full/V01_vtab_dtd_all5_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     },
     {
       "file": "vit_full/V02_vtab_eurosat_all5_methods.sh",
       "bash_n": true,
-      "stderr": ""
+      "correct_repo": true,
+      "git_clone": true,
+      "clone_retry": true,
+      "pip_install": true,
+      "source_snapshot_guard": true,
+      "gpu_check": true,
+      "session_specific_data": true,
+      "dataset_bootstrap": true,
+      "dry_run": true,
+      "result_zip": true
     }
   ],
-  "python_heredoc_blocks_compiled": 198,
+  "all_training_shell_checks_pass": true,
+  "python_heredoc_blocks_checked": 201,
   "python_heredoc_errors": [],
-  "python_heredoc_pass": true,
-  "split_policy": "split only when conservative estimate > 12 h; 11h55m safety deadline",
-  "max_estimated_session_hours": 11.8,
-  "total_estimated_session_hours": 202.6,
-  "cnn_plan_validation": "PASS: all C01-C14 target/method partitions resolved with run_cnn_paper.py --plan-only against uploaded dt1d-main source",
-  "cnn_full_method_coverage": "PASS: every full CNN target has exactly the 9 intended methods across its compact partitions, with no duplicate or missing method",
-  "proposal_cnn_plan_validation": "PASS: P01 five targets each resolved to 3 proposal runs (seeds 0,1,2)",
-  "dense_plan_validation": "PASS: D01/D02 resolve to 27 runs each; P02 four targets resolve to 3 proposal runs each",
-  "ablation_plan_validation": "PASS: A01/A02 each resolve to 90 runs = 30 variants x 3 seeds",
-  "source_snapshot_hash_validation": "PASS: all embedded CNN and ViT SHA256 expectations exactly match the two uploaded updated source ZIPs",
-  "vit_cli_source_validation": "PASS: uploaded run_fair_vit_comparison.py supports comma-separated --batch-sizes and methods whc_dt1d,vpt,pfeiffer,full,linear",
-  "zip_integrity": "PASS"
+  "python_heredocs_pass": true,
+  "current_uploaded_source_hash_checks": {
+    "cnn": {
+      "configs/ablations/whc_p2_fixed_gate_reviewer_ablation.yaml": {
+        "expected": "498e3b8cced23f3b4fffda4d9ca99b6b9e7180087cbdb2aabf034bd019af9819",
+        "actual": "498e3b8cced23f3b4fffda4d9ca99b6b9e7180087cbdb2aabf034bd019af9819",
+        "pass": true
+      },
+      "configs/dense/dense_prediction_manifest.yaml": {
+        "expected": "61f09777d631c844f5389412a84cb1cd84613475363c24711e3e7b3eff46f078",
+        "actual": "61f09777d631c844f5389412a84cb1cd84613475363c24711e3e7b3eff46f078",
+        "pass": true
+      },
+      "configs/paper/cnn_three_seed_manifest.yaml": {
+        "expected": "87bb4464e1d324c63de15d108a7321dd16706382bcea457a719c2c025747bec9",
+        "actual": "87bb4464e1d324c63de15d108a7321dd16706382bcea457a719c2c025747bec9",
+        "pass": true
+      },
+      "models/whc_compact_dt1d_adapter.py": {
+        "expected": "db6f55928a0d913b1653d3370bf38a88408af65425031e94915923c16caa76db",
+        "actual": "db6f55928a0d913b1653d3370bf38a88408af65425031e94915923c16caa76db",
+        "pass": true
+      },
+      "tools/run_cnn_paper.py": {
+        "expected": "07488718f2646be54787ff93160c16bee19c0e565737df78e46e417919006b2b",
+        "actual": "07488718f2646be54787ff93160c16bee19c0e565737df78e46e417919006b2b",
+        "pass": true
+      },
+      "tools/run_dense_paper.py": {
+        "expected": "4f576833b022ce3a9774082330fd9613af105d0e46064cf28f75f9817da060bb",
+        "actual": "4f576833b022ce3a9774082330fd9613af105d0e46064cf28f75f9817da060bb",
+        "pass": true
+      }
+    },
+    "vit": {
+      "configs/ablations/whc_p2_fixed_gate_vit.yaml": {
+        "expected": "ead24bebaa3c5bf9c973bac97659154481cc90cdd00fa4f20cb447eec4aa2768",
+        "actual": "ead24bebaa3c5bf9c973bac97659154481cc90cdd00fa4f20cb447eec4aa2768",
+        "pass": true
+      },
+      "run_fair_vit_comparison.py": {
+        "expected": "216a4fd69b628628ad29bcd9f35d27f2d22259e2d4a76d6f4d722298b0a85dd2",
+        "actual": "216a4fd69b628628ad29bcd9f35d27f2d22259e2d4a76d6f4d722298b0a85dd2",
+        "pass": true
+      },
+      "run_whc_p2_vit_ablation.py": {
+        "expected": "d36a28362f2ecf977310d1eb24700b9852a8370a7d72ff49b7df69a8d837faa1",
+        "actual": "d36a28362f2ecf977310d1eb24700b9852a8370a7d72ff49b7df69a8d837faa1",
+        "pass": true
+      },
+      "src/configs/config.py": {
+        "expected": "8726621300ce3dbf724247871874d978b3c2378cf81f6d214181ad0ed04a7cd1",
+        "actual": "8726621300ce3dbf724247871874d978b3c2378cf81f6d214181ad0ed04a7cd1",
+        "pass": true
+      },
+      "src/models/vit_adapter/whc_compact_dt1d_adapter.py": {
+        "expected": "710b03d3b98fcc32cbe6145bcbd2a80aea2683b2a76a4008282408499c101b92",
+        "actual": "710b03d3b98fcc32cbe6145bcbd2a80aea2683b2a76a4008282408499c101b92",
+        "pass": true
+      }
+    }
+  },
+  "all_source_hashes_pass": true,
+  "plan_only_validation": [
+    {
+      "session": "C01",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C02",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C03",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C04",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C05",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C06",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C07",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C08",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C09",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C10",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C11",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C12",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C13",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "C14",
+      "kind": "cnn_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "D01",
+      "kind": "dense_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    },
+    {
+      "session": "D02",
+      "kind": "dense_plan",
+      "returncode": 0,
+      "pass": true,
+      "stderr_tail": ""
+    }
+  ],
+  "all_executed_plan_checks_pass": true,
+  "cnn_current_code_tests": "45 passed (validate_whc_compact + selected CNN/dense tests executed in container)",
+  "vit_current_code_validator": "validate_whc_p2_vit.py PASS; full pytest collection could not be repeated in this offline container because fvcore is not installed, but every Kaggle ViT cell installs fvcore before tests.",
+  "drive_note": "P02 requires authorized DRIVE access via Kaggle Input, DRIVE_DATA_DIR, or DRIVE_ARCHIVE_URL; no unofficial mirror is hard-coded.",
+  "exact_bundle_and_ablation_plan_checks": [
+    {
+      "session": "A01",
+      "target": "whc_p2_fixed_gate_reviewer_dtd_r18",
+      "returncode": 0,
+      "run_count": 90,
+      "expected": 90,
+      "pass": true
+    },
+    {
+      "session": "A02",
+      "target": "whc_p2_fixed_gate_reviewer_flowers_b0",
+      "returncode": 0,
+      "run_count": 90,
+      "expected": 90,
+      "pass": true
+    },
+    {
+      "session": "P01",
+      "target": "table_05",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P01",
+      "target": "table_09",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P01",
+      "target": "figure_04",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P01",
+      "target": "table_14_15",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P01",
+      "target": "figure_01",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P02",
+      "target": "binary_vit_drive",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P02",
+      "target": "binary_deeplab_drive",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P02",
+      "target": "binary_vit_pennfudan",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    },
+    {
+      "session": "P02",
+      "target": "binary_deeplab_pennfudan",
+      "returncode": 0,
+      "run_count": 3,
+      "expected": 3,
+      "pass": true
+    }
+  ],
+  "all_exact_bundle_and_ablation_plan_checks_pass": true,
+  "vit_cli_static_compatibility": {
+    "options": {
+      "--dataset": true,
+      "--data-path": true,
+      "--model-root": true,
+      "--output-root": true,
+      "--batch-sizes": true,
+      "--methods": true,
+      "--epochs": true,
+      "--resolution": true,
+      "--seeds": true,
+      "--tune-seed": true,
+      "--weight-decay": true,
+      "--warmup-epoch": true,
+      "--patience": true,
+      "--vpt-tokens": true,
+      "--allow-boundary-best": true,
+      "--gpus": true,
+      "--dry-run": true
+    },
+    "whc_dt1d_key": true,
+    "pass": true
+  }
 }

@@ -1,49 +1,58 @@
-# DT1D WHC compact Kaggle rerun package — 12-hour split policy
+# DT1D WHC Kaggle package — fresh standalone cells
 
-This is the compact version of the previous 45-session package.
+This package uses the **current uploaded code snapshots** and the renamed repositories:
 
-## Split rule
+- CNN / dense: `https://github.com/tydeptrai21042004/dt1d.git`
+- ViT: `https://github.com/tydeptrai21042004/DT1D-vit.git`
 
-- A workload is **kept in one Kaggle Bash cell whenever the conservative 2xT4 estimate is <= 12 hours**.
-- It is split only when the estimated wall time would exceed 12 hours.
-- Every cell has an internal **11 h 55 min safety deadline**, writes a resumable `*_results.zip`, and skips already-completed runs when that ZIP is attached on a retry.
-- Estimates are based on the previous package's per-session 2xT4 estimates. For merged cells I use the **sum of the previous estimates**, so the estimate is conservative because clone/install/dataset setup is now shared.
+## Standalone rule
 
-## Result
+Every **training** `.sh` / Kaggle code cell is independent. Paste any one training cell into a new Kaggle notebook with **Internet ON** and **GPU ON**. The cell performs, in this order:
 
-- Previous package: **45 training `.sh` files**.
-- This package: **23 training `.sh` files** + 1 final merge cell.
-- Conservative summed wall-time estimates across all work: **202.6 session-hours**. This is not sequential elapsed time if you run Kaggle sessions in parallel.
+1. checks Python/git,
+2. fresh-clones the correct GitHub repository (3 retry attempts),
+3. optionally checks out `DT1D_CNN_COMMIT` or `DT1D_VIT_COMMIT`,
+4. SHA-256 validates the cloned implementation against the current uploaded source snapshot,
+5. installs the dependencies required by that repository,
+6. runs the proposal/source tests and GPU check,
+7. restores only its own optional result ZIP for resume,
+8. downloads/prepares its own dataset(s),
+9. downloads/caches the pretrained backbone/checkpoint needed by that cell,
+10. generates and validates the exact execution plan,
+11. dry-runs the generated configurations,
+12. runs training on up to two GPUs,
+13. aggregates and writes `<SESSION>_results.zip`.
 
-## Sessions near the 12-hour ceiling
+The data/model roots are session-specific (`/kaggle/working/data_<SESSION>` and, for ViT, `/kaggle/working/models_<SESSION>`), so no training cell needs a dataset or model cache produced by another cell.
 
-`C08`, `C09`, `C10`, `C11`, `V01`, and `V02` are deliberately packed close to the 12-hour limit. Runtime can vary by Kaggle VM/load, so the resumable ZIP mechanism is retained. `V01/V02` are 12.0 h by the old summed estimates, but merging removes duplicated clone/install/setup overhead and should bring the real wall time below that sum.
+## DRIVE exception (P02 only)
 
-## Main grouping
+The current dense code uses the historical DRIVE layout with vessel annotations under both `training/1st_manual` and `test/1st_manual`. DRIVE distribution requires controlled/account access, so the package deliberately does **not** hard-code an unofficial mirror. P02 is still independent of every other cell, but you must provide DRIVE to that cell in one of these ways:
 
-- `A01-A02`: one ablation/hyper session per dataset, all 3 seeds together.
-- `P01`: all updated-proposal-only CNN reruns from existing experiments (~7.4 h).
-- `P02`: all updated-proposal-only binary dense reruns (~10.4 h).
-- `P03`: all updated-proposal-only existing ViT reruns (~9.0 h).
-- `C01-C07`: full CNN experiments that fit below 12 h are each a single session.
-- `C08-C10`: SVHN is split into the minimum 3 balanced sessions because the full estimate is ~35 h.
-- `C11-C12`: Food-101/EfficientNet-B0 is split into 2 sessions because the full estimate is ~21.6 h.
-- `C13-C14`: Food-101/ResNet-18 is split into 2 sessions because the full estimate is ~19.0 h.
-- `D01-D02`: semantic segmentation and detection each already fit below 12 h.
-- `V01-V02`: one all-five-method session per new VTAB dataset.
+- attach it as a Kaggle Input using the expected layout; or
+- set `DRIVE_DATA_DIR=/path/to/DRIVE`; or
+- set `DRIVE_ARCHIVE_URL=<your authorized direct zip URL>`.
 
-Repositories:
+P02 downloads PennFudan itself and downloads the required pretrained model weights.
 
-```text
-tydeptrai21042004/dt1d
-tydeptrai21042004/DT1D-vit
-```
+## Optional exact Git commit pin
 
-Optional exact source pinning before a cell:
+Before a CNN/dense cell:
 
 ```bash
-export DT1D_CNN_COMMIT="<final CNN commit>"
-export DT1D_VIT_COMMIT="<final ViT commit>"
+export DT1D_CNN_COMMIT=<exact sha>
 ```
 
-Run cells in `RUN_ORDER.csv`. When one is interrupted, attach that cell's result ZIP as Kaggle Input and rerun the same cell.
+Before a ViT cell:
+
+```bash
+export DT1D_VIT_COMMIT=<exact sha>
+```
+
+If no commit is supplied, the cell uses the current default branch but still performs the SHA-256 source-snapshot check. A mismatch fails before GPU training; only set `DT1D_ALLOW_SOURCE_MISMATCH=1` if you intentionally changed the repository after this package was generated.
+
+## Session count and splitting
+
+The compact grouping is preserved: experiments are combined when the estimate remains within a Kaggle 12-hour session and split only for the workloads estimated to exceed that limit. Every session has an 11 h 55 min safety cutoff and writes a resumable ZIP.
+
+`FINAL_MERGE_ALL_RESULTS.sh` is intentionally different: it is an aggregation-only cell, so it does not clone a training repo or download datasets. Attach the result ZIPs and run the merge after the training sessions are complete.

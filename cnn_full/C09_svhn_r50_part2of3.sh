@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C09 | SVHN / ResNet-50 / 10ep / BS128 — split 2/3 | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: bam,lora_conv,residual
@@ -16,7 +20,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -41,8 +45,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -113,6 +127,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.

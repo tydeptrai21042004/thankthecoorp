@@ -1,12 +1,16 @@
-# DT1D WHC compact <=12h Kaggle rerun cells
+# DT1D WHC — fresh standalone Kaggle cells
 
-23 training cells + final merge. Workloads are split only when conservative estimated wall time exceeds 12 h.
+Every training cell below contains the full clone → install → dataset/weights → plan/dry-run → train → aggregate/ZIP workflow.
 
-## A01 — DTD / ResNet-18 ablation + hyper (~7.50 h)
+## A01 — DTD / ResNet-18 ablation + hyper
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: A01 | DTD / ResNet-18 ablation + hyperparameter sensitivity | all 3 seeds in one <=12h session
 # Methods/variants: 30 variants
@@ -23,7 +27,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -48,8 +52,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -120,6 +134,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 # Augment the committed reviewer matrix with the old hyperparameter-sensitivity group/support controls.
 RUNTIME_MANIFEST="$OUTPUT_ROOT/runtime_ablation_hyper_manifest.yaml"; export RUNTIME_MANIFEST
@@ -261,11 +276,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## A02 — Flowers102 / EfficientNet-B0 ablation + hyper (~9.00 h)
+## A02 — Flowers102 / EfficientNet-B0 ablation + hyper
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: A02 | Flowers102 / EfficientNet-B0 ablation + hyperparameter sensitivity | all 3 seeds in one <=12h session
 # Methods/variants: 30 variants
@@ -282,7 +301,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -307,8 +326,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -379,6 +408,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 # Augment the committed reviewer matrix with the old hyperparameter-sensitivity group/support controls.
 RUNTIME_MANIFEST="$OUTPUT_ROOT/runtime_ablation_hyper_manifest.yaml"; export RUNTIME_MANIFEST
@@ -520,11 +550,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## P01 — Updated proposal in existing CNN experiments (~7.40 h)
+## P01 — Updated proposal in existing CNN experiments
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 # Standalone Kaggle cell: P01 | UPDATED proposal-only rerun across 5 existing CNN experiments
 # Targets: table_05, table_09, figure_04, table_14_15, figure_01
 # Method: dt1d (updated WHC-Compact-DT1D implementation), seeds 0,1,2
@@ -532,7 +566,7 @@ set -Eeuo pipefail
 # Only bundled because total estimate is below 12 h. Hard cutoff: 11 h 55 min; resumable ZIP.
 SESSION_ID="P01"; TARGETS="table_05,table_09,figure_04,table_14_15,figure_01"; METHODS="dt1d"; SEEDS="0,1,2"
 REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"; REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
-WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/dt1d_shared_data"; OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/data_$SESSION_ID"; OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID TARGETS METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 pack_results() {
@@ -549,7 +583,19 @@ PYZIP
   ls -lh "$RESULT_ZIP" || true; fi
 }
 trap 'rc=$?; trap - EXIT; [[ -f "$RESULT_ZIP" ]] || pack_results || true; exit $rc' EXIT
-rm -rf "$REPO_DIR"; git clone --depth 1 "$REPO_URL" "$REPO_DIR"; cd "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
+cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then git fetch --depth 1 origin "$REPO_COMMIT"; git checkout --detach "$REPO_COMMIT"; [[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]]; fi
 SOURCE_COMMIT="$(git rev-parse HEAD)"; export SOURCE_COMMIT; echo "SOURCE_COMMIT=$SOURCE_COMMIT"
 python - <<'PYSOURCE'
@@ -608,6 +654,7 @@ if zs:
  shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 # Preload all datasets/backbones once.
 python - <<'PYPRELOAD'
 import os,yaml
@@ -721,16 +768,20 @@ echo "P01 bundle finished. If incomplete, attach P01_results.zip and rerun the S
 exit 0
 ```
 
-## P02 — Updated proposal in existing binary dense experiments (~10.40 h)
+## P02 — Updated proposal in existing binary dense experiments
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 # Standalone Kaggle cell: P02 | UPDATED proposal-only rerun across 4 existing binary dense-prediction experiments
 # Targets: binary_vit_drive,binary_deeplab_drive,binary_vit_pennfudan,binary_deeplab_pennfudan
 # Method whc_dt, seeds 0,1,2. Conservative summed estimate ~10.40 h on 2xT4; hard cutoff 11 h 55 min, resumable.
 SESSION_ID="P02"; TARGETS="binary_vit_drive,binary_deeplab_drive,binary_vit_pennfudan,binary_deeplab_pennfudan"; METHODS="whc_dt"; SEEDS="0,1,2"
-REPO_URL="https://github.com/tydeptrai21042004/dt1d.git";REPO_COMMIT="${DT1D_CNN_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/dt1d-$SESSION_ID";DATA_ROOT="$WORKDIR/dt1d_shared_data";OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+REPO_URL="https://github.com/tydeptrai21042004/dt1d.git";REPO_COMMIT="${DT1D_CNN_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/dt1d-$SESSION_ID";DATA_ROOT="$WORKDIR/data_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)";DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))";export SESSION_ID TARGETS METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 pack_results() { if [[ -d "$OUTPUT_ROOT" ]];then python - <<'PYZIP'
 import os,zipfile
@@ -743,7 +794,19 @@ print(d)
 PYZIP
 ls -lh "$RESULT_ZIP" || true;fi; }
 trap 'rc=$?; trap - EXIT; [[ -f "$RESULT_ZIP" ]] || pack_results || true; exit $rc' EXIT
-rm -rf "$REPO_DIR";git clone --depth 1 "$REPO_URL" "$REPO_DIR";cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
+cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi
 SOURCE_COMMIT="$(git rev-parse HEAD)";export SOURCE_COMMIT
 python - <<'PYSOURCE'
 import hashlib, os
@@ -797,6 +860,7 @@ if zs:
  shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 # Preload all required official datasets and weights once.
 python - <<'PYPRELOAD'
 import os,shutil,urllib.request,yaml
@@ -806,14 +870,30 @@ m=yaml.safe_load(Path('configs/dense/dense_prediction_manifest.yaml').read_text(
 for t in targets:
  s=m['targets'][t];ds=s['dataset'];pipe=s['pipeline'];print('PRELOAD',t,ds,pipe)
  if ds=='drive' and 'drive' not in seen:
-  dst=root/'DRIVE';req=[dst/'training/images',dst/'training/1st_manual',dst/'test/images',dst/'test/1st_manual']
-  if not all(p.is_dir() for p in req):
-   found=None
-   for tr in Path('/kaggle/input').rglob('training') if Path('/kaggle/input').exists() else []:
-    b=tr.parent;r=[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
-    if all(p.is_dir() for p in r):found=b;break
-   if found is None:raise RuntimeError('Official DRIVE not found as Kaggle Input.')
-   shutil.copytree(found,dst,dirs_exist_ok=True)
+  dst=root/'DRIVE';req=lambda b:[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
+  def valid(b): return b.is_dir() and all(p.is_dir() for p in req(b))
+  found=None
+  # 1) Explicit authorized/local source path (recommended for reproducibility).
+  env_dir=os.environ.get('DRIVE_DATA_DIR','').strip()
+  if env_dir and valid(Path(env_dir)): found=Path(env_dir)
+  # 2) Attached Kaggle Input containing the historical DRIVE training/test + 1st_manual layout.
+  if found is None and Path('/kaggle/input').exists():
+   for tr in Path('/kaggle/input').rglob('training'):
+    if valid(tr.parent): found=tr.parent; break
+  # 3) Optional authorized direct archive URL supplied by the user.
+  #    The official Grand Challenge distribution requires account access, so no unauthenticated mirror is hard-coded.
+  if found is None:
+   url=os.environ.get('DRIVE_ARCHIVE_URL','').strip()
+   if url:
+    arc=root/'drive_authorized_download.zip';urllib.request.urlretrieve(url,arc);tmp=root/'_drive_extract';shutil.rmtree(tmp,ignore_errors=True);tmp.mkdir()
+    shutil.unpack_archive(str(arc),str(tmp))
+    for tr in tmp.rglob('training'):
+     if valid(tr.parent): found=tr.parent; break
+  if found is None:
+   raise RuntimeError('DRIVE access is required for P02. Attach the authorized DRIVE dataset as a Kaggle Input (training/images, training/1st_manual, test/images, test/1st_manual), or set DRIVE_DATA_DIR / DRIVE_ARCHIVE_URL. This cell does not depend on any earlier cell.')
+  shutil.copytree(found,dst,dirs_exist_ok=True)
+  assert valid(dst), dst
+  print('DRIVE READY:',dst)
   seen.add('drive')
  if ds=='pennfudan' and 'pennfudan' not in seen:
   dst=root/'PennFudanPed'
@@ -893,15 +973,19 @@ PYSTATUS
 pack_results;trap - EXIT;echo "P02 bundle finished; rerun with its ZIP attached if incomplete.";exit 0
 ```
 
-## P03 — Updated proposal in existing ViT experiments (~9.00 h)
+## P03 — Updated proposal in existing ViT experiments
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 # Standalone Kaggle cell: P03 | proposal-only ViT fair reruns: Flowers102 BS16+BS32 and VTAB-Caltech101 BS32
 # Method whc_dt1d only; 10 LR candidates on tune seed 42 -> final seeds 0,1,2 -> test at best-val checkpoint.
 # Conservative summed estimate ~9.0 h on 2xT4; shared setup reduces overhead. Hard cutoff 11 h 55 min; resumable.
-SESSION_ID="P03";METHOD="whc_dt1d";REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git";REPO_COMMIT="${DT1D_VIT_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID";DATA_ROOT="$WORKDIR/vit_shared_data";MODEL_ROOT="$WORKDIR/vit_weights";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip";CELL_START_EPOCH="$(date +%s)";DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))";export SESSION_ID METHOD REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
+SESSION_ID="P03";METHOD="whc_dt1d";REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git";REPO_COMMIT="${DT1D_VIT_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID";DATA_ROOT="$WORKDIR/data_$SESSION_ID";MODEL_ROOT="$WORKDIR/models_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip";CELL_START_EPOCH="$(date +%s)";DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))";export SESSION_ID METHOD REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 pack_results() { if [[ -d "$OUTPUT_ROOT" ]];then python - <<'PYZIP'
 import os,zipfile
 from pathlib import Path
@@ -913,7 +997,19 @@ print(d)
 PYZIP
 ls -lh "$RESULT_ZIP" || true;fi; }
 trap 'rc=$?; trap - EXIT; [[ -f "$RESULT_ZIP" ]] || pack_results || true; exit $rc' EXIT
-rm -rf "$REPO_DIR";git clone --depth 1 "$REPO_URL" "$REPO_DIR";cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi;SOURCE_COMMIT="$(git rev-parse HEAD)";export SOURCE_COMMIT
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
+cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi;SOURCE_COMMIT="$(git rev-parse HEAD)";export SOURCE_COMMIT
 python - <<'PYSOURCE'
 import hashlib, os
 from pathlib import Path
@@ -934,6 +1030,17 @@ if bad:
 print('VIT SOURCE SNAPSHOT PASS')
 PYSOURCE
 python -m pip install -q --upgrade-strategy only-if-needed scipy scikit-learn pandas Pillow fvcore iopath yacs simplejson termcolor tabulate tqdm ml-collections 'timm>=1.0.0,<2' PyYAML tensorflow-datasets six
+if ! python - <<'PYTFIMPORT'
+import tensorflow
+print('tensorflow:', tensorflow.__version__)
+PYTFIMPORT
+then
+  python -m pip install -q 'tensorflow>=2.16,<2.20'
+fi
+python - <<'PYTFIMPORT2'
+import tensorflow, tensorflow_datasets
+print('tensorflow/tfds import: PASS')
+PYTFIMPORT2
 python validate_whc_p2_vit.py;python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py;python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py tests/test_fair_protocol.py tests/test_dt1d_token_adapter.py;python verify_vpt_original.py;python verify_fair_protocol.py
 python - <<'PYGPU'
 import torch
@@ -960,7 +1067,8 @@ if zs:
  if len(f)==1:shutil.move(str(f[0]),str(out));print('RESTORED',z,score(z))
  shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
-mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT" "$MODEL_ROOT"
+mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT" "$MODEL_ROOT"
 WEIGHT_FILE="$MODEL_ROOT/ViT-B_16-224.npz";if [[ ! -s "$WEIGHT_FILE" ]];then curl -L --fail --retry 5 --retry-delay 5 'https://storage.googleapis.com/vit_models/imagenet21k+imagenet2012/ViT-B_16-224.npz' -o "$WEIGHT_FILE";fi
 python - "$WEIGHT_FILE" <<'PYW'
 import sys,numpy as np
@@ -1002,11 +1110,15 @@ PYSTATUS
 pack_results;trap - EXIT;echo "P03 bundle finished; attach P03_results.zip and rerun if incomplete.";exit 0
 ```
 
-## C01 — DTD / ResNet-50 / 100ep / BS128 — all 9 methods (~10.30 h)
+## C01 — DTD / ResNet-50 / 100ep / BS128 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C01 | DTD / ResNet-50 / 100ep / BS128 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -1023,7 +1135,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -1048,8 +1160,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -1120,6 +1242,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -1237,11 +1360,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C02 — Flowers102 / ResNet-50 / 100ep / BS128 — all 9 methods (~5.80 h)
+## C02 — Flowers102 / ResNet-50 / 100ep / BS128 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C02 | Flowers102 / ResNet-50 / 100ep / BS128 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -1258,7 +1385,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -1283,8 +1410,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -1355,6 +1492,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -1472,11 +1610,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C03 — Flowers102 / ResNet-18 / 100ep / BS64 — all 9 methods (~3.20 h)
+## C03 — Flowers102 / ResNet-18 / 100ep / BS64 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C03 | Flowers102 / ResNet-18 / 100ep / BS64 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -1493,7 +1635,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -1518,8 +1660,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -1590,6 +1742,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -1707,11 +1860,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C04 — Flowers102 / ResNet-18 / 100ep / BS32 — all 9 methods (~4.00 h)
+## C04 — Flowers102 / ResNet-18 / 100ep / BS32 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C04 | Flowers102 / ResNet-18 / 100ep / BS32 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -1728,7 +1885,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -1753,8 +1910,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -1825,6 +1992,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -1942,11 +2110,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C05 — Oxford-IIIT Pet / EfficientNet-B0 / 10ep / BS64 — all 9 methods (~1.50 h)
+## C05 — Oxford-IIIT Pet / EfficientNet-B0 / 10ep / BS64 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C05 | Oxford-IIIT Pet / EfficientNet-B0 / 10ep / BS64 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -1963,7 +2135,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -1988,8 +2160,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -2060,6 +2242,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -2177,11 +2360,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C06 — Oxford-IIIT Pet / EfficientNet-B0 / 100ep / BS64 — all 9 methods (~10.00 h)
+## C06 — Oxford-IIIT Pet / EfficientNet-B0 / 100ep / BS64 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C06 | Oxford-IIIT Pet / EfficientNet-B0 / 100ep / BS64 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -2198,7 +2385,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -2223,8 +2410,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -2295,6 +2492,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -2412,11 +2610,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C07 — EuroSAT / MobileNetV3-Small / 25ep / BS32 — all 9 methods (~11.40 h)
+## C07 — EuroSAT / MobileNetV3-Small / 25ep / BS32 — all 9 methods
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C07 | EuroSAT / MobileNetV3-Small / 25ep / BS32 — all 9 methods | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full
@@ -2433,7 +2635,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -2458,8 +2660,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -2530,6 +2742,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -2647,11 +2860,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C08 — SVHN / ResNet-50 / 10ep / BS128 — split 1/3 (would exceed 12h as one session) (~11.80 h)
+## C08 — SVHN / ResNet-50 / 10ep / BS128 — split 1/3 (would exceed 12h as one session)
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C08 | SVHN / ResNet-50 / 10ep / BS128 — split 1/3 (would exceed 12h as one session) | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: full,linear,bitfit
@@ -2668,7 +2885,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -2693,8 +2910,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -2765,6 +2992,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -2882,11 +3110,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C09 — SVHN / ResNet-50 / 10ep / BS128 — split 2/3 (~11.70 h)
+## C09 — SVHN / ResNet-50 / 10ep / BS128 — split 2/3
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C09 | SVHN / ResNet-50 / 10ep / BS128 — split 2/3 | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: bam,lora_conv,residual
@@ -2903,7 +3135,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -2928,8 +3160,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -3000,6 +3242,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -3117,11 +3360,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C10 — SVHN / ResNet-50 / 10ep / BS128 — split 3/3 (~11.50 h)
+## C10 — SVHN / ResNet-50 / 10ep / BS128 — split 3/3
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C10 | SVHN / ResNet-50 / 10ep / BS128 — split 3/3 | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: ssf,dt1d,conv_r4
@@ -3138,7 +3385,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -3163,8 +3410,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -3235,6 +3492,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -3352,11 +3610,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C11 — Food-101 / EfficientNet-B0 / 10ep / BS64 — split 1/2 (all methods would exceed 12h) (~11.73 h)
+## C11 — Food-101 / EfficientNet-B0 / 10ep / BS64 — split 1/2 (all methods would exceed 12h)
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C11 | Food-101 / EfficientNet-B0 / 10ep / BS64 — split 1/2 (all methods would exceed 12h) | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam
@@ -3373,7 +3635,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -3398,8 +3660,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -3470,6 +3742,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -3587,11 +3860,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C12 — Food-101 / EfficientNet-B0 / 10ep / BS64 — split 2/2 (~9.87 h)
+## C12 — Food-101 / EfficientNet-B0 / 10ep / BS64 — split 2/2
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C12 | Food-101 / EfficientNet-B0 / 10ep / BS64 — split 2/2 | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: lora_conv,residual,conv_r4,full
@@ -3608,7 +3885,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -3633,8 +3910,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -3705,6 +3992,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -3822,11 +4110,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C13 — Food-101 / ResNet-18 / 10ep / BS32 — split 1/2 (all methods would exceed 12h) (~10.33 h)
+## C13 — Food-101 / ResNet-18 / 10ep / BS32 — split 1/2 (all methods would exceed 12h)
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C13 | Food-101 / ResNet-18 / 10ep / BS32 — split 1/2 (all methods would exceed 12h) | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: linear,bitfit,ssf,dt1d,bam
@@ -3843,7 +4135,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -3868,8 +4160,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -3940,6 +4242,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -4057,11 +4360,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## C14 — Food-101 / ResNet-18 / 10ep / BS32 — split 2/2 (~8.67 h)
+## C14 — Food-101 / ResNet-18 / 10ep / BS32 — split 2/2
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: C14 | Food-101 / ResNet-18 / 10ep / BS32 — split 2/2 | compact <=12h session | UPDATED WHC proposal
 # Methods/variants: lora_conv,residual,conv_r4,full
@@ -4078,7 +4385,7 @@ REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"
 REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
 WORKDIR="/kaggle/working"
 REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"
-DATA_ROOT="$WORKDIR/dt1d_shared_data"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"
 RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
@@ -4103,8 +4410,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -4175,6 +4492,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 
 # 4) Download official dataset once and cache pretrained backbone before parallel workers.
@@ -4292,11 +4610,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## D01 — Oxford-IIIT Pet semantic / DeepLabV3-MobileNetV3 / 5ep / BS8 (~7.00 h)
+## D01 — Oxford-IIIT Pet semantic / DeepLabV3-MobileNetV3 / 5ep / BS8
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: D01 | Oxford-IIIT Pet semantic / DeepLabV3-MobileNetV3 / 5ep / BS8 | all 9 methods | UPDATED WHC proposal
 # Methods: linear,bitfit,ssf,whc_dt,bam,lora_conv,residual_adapter,conv_adapter,full
@@ -4306,7 +4628,7 @@ set -Eeuo pipefail
 
 SESSION_ID="D01"; TARGET="semantic_pet_deeplab"; METHODS="linear,bitfit,ssf,whc_dt,bam,lora_conv,residual_adapter,conv_adapter,full"; SEEDS="0,1,2"
 REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"; REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
-WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/dt1d_shared_data"
+WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"; RUNTIME_MANIFEST="$OUTPUT_ROOT/runtime_dense_manifest.yaml"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID TARGET METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP RUNTIME_MANIFEST DEADLINE_EPOCH
@@ -4330,8 +4652,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -4401,6 +4733,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 # Runtime manifest permits exactly the requested method subset while keeping every other target setting unchanged.
 python - <<'PYMAN'
@@ -4426,7 +4759,7 @@ if ds=='drive':
             for tr in inp.rglob('training'):
                 b=tr.parent;r=[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
                 if all(p.is_dir() for p in r):found=b;break
-        if found is None:raise RuntimeError('Official DRIVE not found. Add DRIVE as Kaggle Input with training/images, training/1st_manual, test/images, test/1st_manual.')
+        if found is None:raise RuntimeError('DRIVE requires an authorized Kaggle Input or source path. This target normally does not use DRIVE.')
         shutil.copytree(found,dst,dirs_exist_ok=True)
 elif ds=='pennfudan':
     dst=root/'PennFudanPed'
@@ -4516,11 +4849,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## D02 — Oxford-IIIT Pet detection / Faster R-CNN MobileNetV3-FPN / 1ep / BS1 (~7.50 h)
+## D02 — Oxford-IIIT Pet detection / Faster R-CNN MobileNetV3-FPN / 1ep / BS1
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: D02 | Oxford-IIIT Pet detection / Faster R-CNN MobileNetV3-FPN / 1ep / BS1 | all 9 methods | UPDATED WHC proposal
 # Methods: linear,bitfit,ssf,whc_dt,bam,lora_conv,residual_adapter,conv_adapter,full
@@ -4530,7 +4867,7 @@ set -Eeuo pipefail
 
 SESSION_ID="D02"; TARGET="detection_pet_fasterrcnn"; METHODS="linear,bitfit,ssf,whc_dt,bam,lora_conv,residual_adapter,conv_adapter,full"; SEEDS="0,1,2"
 REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"; REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
-WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/dt1d_shared_data"
+WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"; RUNTIME_MANIFEST="$OUTPUT_ROOT/runtime_dense_manifest.yaml"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID TARGET METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP RUNTIME_MANIFEST DEADLINE_EPOCH
@@ -4554,8 +4891,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -4625,6 +4972,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 # Runtime manifest permits exactly the requested method subset while keeping every other target setting unchanged.
 python - <<'PYMAN'
@@ -4650,7 +4998,7 @@ if ds=='drive':
             for tr in inp.rglob('training'):
                 b=tr.parent;r=[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
                 if all(p.is_dir() for p in r):found=b;break
-        if found is None:raise RuntimeError('Official DRIVE not found. Add DRIVE as Kaggle Input with training/images, training/1st_manual, test/images, test/1st_manual.')
+        if found is None:raise RuntimeError('DRIVE requires an authorized Kaggle Input or source path. This target normally does not use DRIVE.')
         shutil.copytree(found,dst,dirs_exist_ok=True)
 elif ds=='pennfudan':
     dst=root/'PennFudanPed'
@@ -4740,11 +5088,15 @@ if [[ "$TRAIN_RC" -eq 0 ]]; then echo "SESSION COMPLETE: $SESSION_ID";else echo 
 exit 0
 ```
 
-## V01 — VTAB-DTD / ViT-B/16 / BS32 (~11.50 h)
+## V01 — VTAB-DTD / ViT-B/16 / BS32
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: V01 | VTAB-DTD / ViT-B/16 / BS32 — all 5 methods | all methods in one <=12h session
 # Methods: whc_dt1d,vpt,pfeiffer,full,linear
@@ -4753,7 +5105,7 @@ set -Eeuo pipefail
 
 SESSION_ID="V01"; DATASET="vtab-dtd"; BATCH_SIZE="32"; METHOD="whc_dt1d,vpt,pfeiffer,full,linear"; VPT_TOKENS="10"
 REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git"; REPO_COMMIT="${DT1D_VIT_COMMIT:-}"; WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID"
-DATA_ROOT="$WORKDIR/vit_shared_data";MODEL_ROOT="$WORKDIR/vit_weights";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID";MODEL_ROOT="$WORKDIR/models_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID DATASET BATCH_SIZE METHOD VPT_TOKENS REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 
@@ -4776,8 +5128,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_VIT_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -4809,6 +5171,17 @@ print('VIT SOURCE SNAPSHOT PASS')
 PYSOURCE
 
 python -m pip install -q --upgrade-strategy only-if-needed scipy scikit-learn pandas Pillow fvcore iopath yacs simplejson termcolor tabulate tqdm ml-collections 'timm>=1.0.0,<2' PyYAML tensorflow-datasets six
+if ! python - <<'PYTFIMPORT'
+import tensorflow
+print('tensorflow:', tensorflow.__version__)
+PYTFIMPORT
+then
+  python -m pip install -q 'tensorflow>=2.16,<2.20'
+fi
+python - <<'PYTFIMPORT2'
+import tensorflow, tensorflow_datasets
+print('tensorflow/tfds import: PASS')
+PYTFIMPORT2
 python validate_whc_p2_vit.py
 python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py
 python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py tests/test_fair_protocol.py tests/test_dt1d_token_adapter.py
@@ -4844,7 +5217,8 @@ if zs:
     if len(found)==1:shutil.move(str(found[0]),str(out));print('RESTORED',z,'score=',score(z))
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
-mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT" "$MODEL_ROOT"
+mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT" "$MODEL_ROOT"
 
 # Add the two additional VTAB dataset registry entries at runtime only; model/baseline implementations remain unchanged.
 python - <<'PYPATCH'
@@ -4928,11 +5302,15 @@ then echo "SESSION COMPLETE: $SESSION_ID";else echo "SESSION INCOMPLETE/TIME-CAP
 exit 0
 ```
 
-## V02 — VTAB-EuroSAT / ViT-B/16 / BS32 (~11.50 h)
+## V02 — VTAB-EuroSAT / ViT-B/16 / BS32
 
 ```bash
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: V02 | VTAB-EuroSAT / ViT-B/16 / BS32 — all 5 methods | all methods in one <=12h session
 # Methods: whc_dt1d,vpt,pfeiffer,full,linear
@@ -4941,7 +5319,7 @@ set -Eeuo pipefail
 
 SESSION_ID="V02"; DATASET="vtab-eurosat"; BATCH_SIZE="32"; METHOD="whc_dt1d,vpt,pfeiffer,full,linear"; VPT_TOKENS="10"
 REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git"; REPO_COMMIT="${DT1D_VIT_COMMIT:-}"; WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID"
-DATA_ROOT="$WORKDIR/vit_shared_data";MODEL_ROOT="$WORKDIR/vit_weights";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
+DATA_ROOT="$WORKDIR/data_$SESSION_ID";MODEL_ROOT="$WORKDIR/models_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID DATASET BATCH_SIZE METHOD VPT_TOKENS REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 
@@ -4964,8 +5342,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_VIT_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -4997,6 +5385,17 @@ print('VIT SOURCE SNAPSHOT PASS')
 PYSOURCE
 
 python -m pip install -q --upgrade-strategy only-if-needed scipy scikit-learn pandas Pillow fvcore iopath yacs simplejson termcolor tabulate tqdm ml-collections 'timm>=1.0.0,<2' PyYAML tensorflow-datasets six
+if ! python - <<'PYTFIMPORT'
+import tensorflow
+print('tensorflow:', tensorflow.__version__)
+PYTFIMPORT
+then
+  python -m pip install -q 'tensorflow>=2.16,<2.20'
+fi
+python - <<'PYTFIMPORT2'
+import tensorflow, tensorflow_datasets
+print('tensorflow/tfds import: PASS')
+PYTFIMPORT2
 python validate_whc_p2_vit.py
 python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py
 python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py tests/test_fair_protocol.py tests/test_dt1d_token_adapter.py
@@ -5032,7 +5431,8 @@ if zs:
     if len(found)==1:shutil.move(str(found[0]),str(out));print('RESTORED',z,'score=',score(z))
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
-mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT" "$MODEL_ROOT"
+mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT" "$MODEL_ROOT"
 
 # Add the two additional VTAB dataset registry entries at runtime only; model/baseline implementations remain unchanged.
 python - <<'PYPATCH'
@@ -5117,6 +5517,8 @@ exit 0
 ```
 
 ## FINAL MERGE
+
+Aggregation only; attach the result ZIPs first.
 
 ```bash
 #!/usr/bin/env bash

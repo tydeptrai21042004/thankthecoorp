@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 # Standalone Kaggle cell: P03 | proposal-only ViT fair reruns: Flowers102 BS16+BS32 and VTAB-Caltech101 BS32
 # Method whc_dt1d only; 10 LR candidates on tune seed 42 -> final seeds 0,1,2 -> test at best-val checkpoint.
 # Conservative summed estimate ~9.0 h on 2xT4; shared setup reduces overhead. Hard cutoff 11 h 55 min; resumable.
-SESSION_ID="P03";METHOD="whc_dt1d";REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git";REPO_COMMIT="${DT1D_VIT_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID";DATA_ROOT="$WORKDIR/vit_shared_data";MODEL_ROOT="$WORKDIR/vit_weights";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip";CELL_START_EPOCH="$(date +%s)";DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))";export SESSION_ID METHOD REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
+SESSION_ID="P03";METHOD="whc_dt1d";REPO_URL="https://github.com/tydeptrai21042004/DT1D-vit.git";REPO_COMMIT="${DT1D_VIT_COMMIT:-}";WORKDIR="/kaggle/working";REPO_DIR="$WORKDIR/DT1D-vit-$SESSION_ID";DATA_ROOT="$WORKDIR/data_$SESSION_ID";MODEL_ROOT="$WORKDIR/models_$SESSION_ID";OUTPUT_ROOT="$WORKDIR/vit_$SESSION_ID";RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip";CELL_START_EPOCH="$(date +%s)";DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))";export SESSION_ID METHOD REPO_DIR DATA_ROOT MODEL_ROOT OUTPUT_ROOT RESULT_ZIP DEADLINE_EPOCH
 pack_results() { if [[ -d "$OUTPUT_ROOT" ]];then python - <<'PYZIP'
 import os,zipfile
 from pathlib import Path
@@ -15,7 +19,19 @@ print(d)
 PYZIP
 ls -lh "$RESULT_ZIP" || true;fi; }
 trap 'rc=$?; trap - EXIT; [[ -f "$RESULT_ZIP" ]] || pack_results || true; exit $rc' EXIT
-rm -rf "$REPO_DIR";git clone --depth 1 "$REPO_URL" "$REPO_DIR";cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi;SOURCE_COMMIT="$(git rev-parse HEAD)";export SOURCE_COMMIT
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
+cd "$REPO_DIR";if [[ -n "$REPO_COMMIT" ]];then git fetch --depth 1 origin "$REPO_COMMIT";git checkout --detach "$REPO_COMMIT";[[ "$(git rev-parse HEAD)" == "$REPO_COMMIT" ]];fi;SOURCE_COMMIT="$(git rev-parse HEAD)";export SOURCE_COMMIT
 python - <<'PYSOURCE'
 import hashlib, os
 from pathlib import Path
@@ -36,6 +52,17 @@ if bad:
 print('VIT SOURCE SNAPSHOT PASS')
 PYSOURCE
 python -m pip install -q --upgrade-strategy only-if-needed scipy scikit-learn pandas Pillow fvcore iopath yacs simplejson termcolor tabulate tqdm ml-collections 'timm>=1.0.0,<2' PyYAML tensorflow-datasets six
+if ! python - <<'PYTFIMPORT'
+import tensorflow
+print('tensorflow:', tensorflow.__version__)
+PYTFIMPORT
+then
+  python -m pip install -q 'tensorflow>=2.16,<2.20'
+fi
+python - <<'PYTFIMPORT2'
+import tensorflow, tensorflow_datasets
+print('tensorflow/tfds import: PASS')
+PYTFIMPORT2
 python validate_whc_p2_vit.py;python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py;python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py tests/test_fair_protocol.py tests/test_dt1d_token_adapter.py;python verify_vpt_original.py;python verify_fair_protocol.py
 python - <<'PYGPU'
 import torch
@@ -62,7 +89,8 @@ if zs:
  if len(f)==1:shutil.move(str(f[0]),str(out));print('RESTORED',z,score(z))
  shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
-mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT" "$MODEL_ROOT"
+mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT" "$MODEL_ROOT"
 WEIGHT_FILE="$MODEL_ROOT/ViT-B_16-224.npz";if [[ ! -s "$WEIGHT_FILE" ]];then curl -L --fail --retry 5 --retry-delay 5 'https://storage.googleapis.com/vit_models/imagenet21k+imagenet2012/ViT-B_16-224.npz' -o "$WEIGHT_FILE";fi
 python - "$WEIGHT_FILE" <<'PYW'
 import sys,numpy as np

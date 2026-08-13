@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# FRESH-STANDALONE GUARANTEE: this file can be pasted into a new Kaggle GPU session by itself.
+# It clones the current GitHub repository, validates the uploaded-code snapshot, installs dependencies,
+# prepares/downloads its own dataset + pretrained weights, generates/dry-runs the plan, trains, aggregates, and zips results.
+# No repository, dataset cache, model cache, or output from another training cell is required (DRIVE access exception documented below).
 
 # Standalone Kaggle cell: D02 | Oxford-IIIT Pet detection / Faster R-CNN MobileNetV3-FPN / 1ep / BS1 | all 9 methods | UPDATED WHC proposal
 # Methods: linear,bitfit,ssf,whc_dt,bam,lora_conv,residual_adapter,conv_adapter,full
@@ -9,7 +13,7 @@ set -Eeuo pipefail
 
 SESSION_ID="D02"; TARGET="detection_pet_fasterrcnn"; METHODS="linear,bitfit,ssf,whc_dt,bam,lora_conv,residual_adapter,conv_adapter,full"; SEEDS="0,1,2"
 REPO_URL="https://github.com/tydeptrai21042004/dt1d.git"; REPO_COMMIT="${DT1D_CNN_COMMIT:-}"
-WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/dt1d_shared_data"
+WORKDIR="/kaggle/working"; REPO_DIR="$WORKDIR/dt1d-$SESSION_ID"; DATA_ROOT="$WORKDIR/data_$SESSION_ID"
 OUTPUT_ROOT="$WORKDIR/run_$SESSION_ID"; RESULT_ZIP="$WORKDIR/${SESSION_ID}_results.zip"; RUNTIME_MANIFEST="$OUTPUT_ROOT/runtime_dense_manifest.yaml"
 CELL_START_EPOCH="$(date +%s)"; DEADLINE_EPOCH="$((CELL_START_EPOCH + 715*60))"
 export SESSION_ID TARGET METHODS SEEDS REPO_DIR DATA_ROOT OUTPUT_ROOT RESULT_ZIP RUNTIME_MANIFEST DEADLINE_EPOCH
@@ -33,8 +37,18 @@ PYZIP
 trap 'rc=$?; trap - EXIT; if [[ ! -f "$RESULT_ZIP" ]]; then pack_results || true; fi; exit $rc' EXIT
 
 # 1) Fresh clone of the UPDATED repository. Set DT1D_CNN_COMMIT=<sha> to pin an exact Git commit.
-rm -rf "$REPO_DIR"
-git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+# 0) Fresh-session prerequisites. Kaggle: Internet ON + GPU accelerator ON.
+command -v git >/dev/null || { echo "ERROR: git is unavailable" >&2; exit 2; }
+command -v python >/dev/null || { echo "ERROR: python is unavailable" >&2; exit 2; }
+python -V
+echo "BOOTSTRAP SESSION=$SESSION_ID REPO=$REPO_URL"
+for _clone_try in 1 2 3; do
+  rm -rf "$REPO_DIR"
+  if git clone --depth 1 "$REPO_URL" "$REPO_DIR"; then break; fi
+  echo "git clone attempt $_clone_try failed; retrying..." >&2
+  sleep $((_clone_try*5))
+done
+[[ -d "$REPO_DIR/.git" ]] || { echo "ERROR: failed to clone $REPO_URL" >&2; exit 2; }
 cd "$REPO_DIR"
 if [[ -n "$REPO_COMMIT" ]]; then
   git fetch --depth 1 origin "$REPO_COMMIT"
@@ -104,6 +118,7 @@ if zs:
     shutil.rmtree(tmp,ignore_errors=True)
 PYRESTORE
 mkdir -p "$OUTPUT_ROOT" "$DATA_ROOT"
+echo "DATASET BOOTSTRAP ROOT=$DATA_ROOT"
 
 # Runtime manifest permits exactly the requested method subset while keeping every other target setting unchanged.
 python - <<'PYMAN'
@@ -129,7 +144,7 @@ if ds=='drive':
             for tr in inp.rglob('training'):
                 b=tr.parent;r=[b/'training/images',b/'training/1st_manual',b/'test/images',b/'test/1st_manual']
                 if all(p.is_dir() for p in r):found=b;break
-        if found is None:raise RuntimeError('Official DRIVE not found. Add DRIVE as Kaggle Input with training/images, training/1st_manual, test/images, test/1st_manual.')
+        if found is None:raise RuntimeError('DRIVE requires an authorized Kaggle Input or source path. This target normally does not use DRIVE.')
         shutil.copytree(found,dst,dirs_exist_ok=True)
 elif ds=='pennfudan':
     dst=root/'PennFudanPed'
