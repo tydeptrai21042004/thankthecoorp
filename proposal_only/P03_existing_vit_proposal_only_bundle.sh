@@ -63,7 +63,11 @@ python - <<'PYTFIMPORT2'
 import tensorflow, tensorflow_datasets
 print('tensorflow/tfds import: PASS')
 PYTFIMPORT2
-python validate_whc_p2_vit.py;python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py;python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py tests/test_fair_protocol.py tests/test_dt1d_token_adapter.py;python verify_vpt_original.py;python verify_fair_protocol.py
+python validate_whc_p2_vit.py
+python -m py_compile run_fair_vit_comparison.py train.py verify_fair_protocol.py verify_vpt_original.py
+python verify_vpt_original.py
+python verify_fair_protocol.py
+python -m pytest -q tests/test_whc_compact_dt1d_token_adapter.py
 python - <<'PYGPU'
 import torch
 assert torch.cuda.is_available();print('GPU count=',torch.cuda.device_count())

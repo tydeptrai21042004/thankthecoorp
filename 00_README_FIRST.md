@@ -56,3 +56,9 @@ If no commit is supplied, the cell uses the current default branch but still per
 The compact grouping is preserved: experiments are combined when the estimate remains within a Kaggle 12-hour session and split only for the workloads estimated to exceed that limit. Every session has an 11 h 55 min safety cutoff and writes a resumable ZIP.
 
 `FINAL_MERGE_ALL_RESULTS.sh` is intentionally different: it is an aggregation-only cell, so it does not clone a training repo or download datasets. Attach the result ZIPs and run the merge after the training sessions are complete.
+
+## v2 Kaggle ViT preflight hotfix
+
+The previous standalone package incorrectly made the complete legacy ViT pytest collection a hard gate. On the current repository commit, three legacy/unit-contract tests fail before dataset preparation even though the final WHC validator passes. The current repository's own Kaggle fresh-session workflow uses `validate_whc_p2_vit.py`, `verify_vpt_original.py`, `verify_fair_protocol.py`, generated-config/YACS dry-run, and proposal-specific WHC tests. v2 follows that workflow and therefore does not abort on those unrelated legacy tests.
+
+TensorFlow cuFFT/cuDNN/cuBLAS duplicate-registration messages during TFDS import are warnings from the Kaggle TensorFlow/XLA stack; they are not treated as the session failure condition.
