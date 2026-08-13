@@ -1,0 +1,141 @@
+{
+  "training_session_count": 23,
+  "shell_script_count_including_merge": 24,
+  "bash_syntax_pass": true,
+  "bash_results": [
+    {
+      "file": "FINAL_MERGE_ALL_RESULTS.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "ablation_hyper/A01_dtd_r18_ablation_hyper_3seed.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "ablation_hyper/A02_flowers_b0_ablation_hyper_3seed.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C01_dtd_r50_100ep_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C02_flowers_r50_100ep_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C03_flowers_r18_100ep_bs64_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C04_flowers_r18_100ep_bs32_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C05_pet_b0_10ep_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C06_pet_b0_100ep_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C07_eurosat_mnv3_25ep_all_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C08_svhn_r50_part1of3.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C09_svhn_r50_part2of3.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C10_svhn_r50_part3of3.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C11_food101_b0_part1of2.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C12_food101_b0_part2of2.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C13_food101_r18_part1of2.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "cnn_full/C14_food101_r18_part2of2.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "dense_full/D01_semantic_pet_deeplab_all9.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "dense_full/D02_detection_pet_fasterrcnn_all9.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "proposal_only/P01_existing_cnn_proposal_only_bundle.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "proposal_only/P02_existing_dense_proposal_only_bundle.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "proposal_only/P03_existing_vit_proposal_only_bundle.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "vit_full/V01_vtab_dtd_all5_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    },
+    {
+      "file": "vit_full/V02_vtab_eurosat_all5_methods.sh",
+      "bash_n": true,
+      "stderr": ""
+    }
+  ],
+  "python_heredoc_blocks_compiled": 198,
+  "python_heredoc_errors": [],
+  "python_heredoc_pass": true,
+  "split_policy": "split only when conservative estimate > 12 h; 11h55m safety deadline",
+  "max_estimated_session_hours": 11.8,
+  "total_estimated_session_hours": 202.6,
+  "cnn_plan_validation": "PASS: all C01-C14 target/method partitions resolved with run_cnn_paper.py --plan-only against uploaded dt1d-main source",
+  "cnn_full_method_coverage": "PASS: every full CNN target has exactly the 9 intended methods across its compact partitions, with no duplicate or missing method",
+  "proposal_cnn_plan_validation": "PASS: P01 five targets each resolved to 3 proposal runs (seeds 0,1,2)",
+  "dense_plan_validation": "PASS: D01/D02 resolve to 27 runs each; P02 four targets resolve to 3 proposal runs each",
+  "ablation_plan_validation": "PASS: A01/A02 each resolve to 90 runs = 30 variants x 3 seeds",
+  "source_snapshot_hash_validation": "PASS: all embedded CNN and ViT SHA256 expectations exactly match the two uploaded updated source ZIPs",
+  "vit_cli_source_validation": "PASS: uploaded run_fair_vit_comparison.py supports comma-separated --batch-sizes and methods whc_dt1d,vpt,pfeiffer,full,linear",
+  "zip_integrity": "PASS"
+}

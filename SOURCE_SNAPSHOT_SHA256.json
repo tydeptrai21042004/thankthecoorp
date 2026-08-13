@@ -1,0 +1,17 @@
+{
+  "cnn": {
+    "models/whc_compact_dt1d_adapter.py": "db6f55928a0d913b1653d3370bf38a88408af65425031e94915923c16caa76db",
+    "configs/paper/cnn_three_seed_manifest.yaml": "87bb4464e1d324c63de15d108a7321dd16706382bcea457a719c2c025747bec9",
+    "configs/dense/dense_prediction_manifest.yaml": "61f09777d631c844f5389412a84cb1cd84613475363c24711e3e7b3eff46f078",
+    "configs/ablations/whc_p2_fixed_gate_reviewer_ablation.yaml": "498e3b8cced23f3b4fffda4d9ca99b6b9e7180087cbdb2aabf034bd019af9819",
+    "tools/run_cnn_paper.py": "07488718f2646be54787ff93160c16bee19c0e565737df78e46e417919006b2b",
+    "tools/run_dense_paper.py": "4f576833b022ce3a9774082330fd9613af105d0e46064cf28f75f9817da060bb"
+  },
+  "vit": {
+    "src/models/vit_adapter/whc_compact_dt1d_adapter.py": "710b03d3b98fcc32cbe6145bcbd2a80aea2683b2a76a4008282408499c101b92",
+    "run_fair_vit_comparison.py": "216a4fd69b628628ad29bcd9f35d27f2d22259e2d4a76d6f4d722298b0a85dd2",
+    "run_whc_p2_vit_ablation.py": "d36a28362f2ecf977310d1eb24700b9852a8370a7d72ff49b7df69a8d837faa1",
+    "configs/ablations/whc_p2_fixed_gate_vit.yaml": "ead24bebaa3c5bf9c973bac97659154481cc90cdd00fa4f20cb447eec4aa2768",
+    "src/configs/config.py": "8726621300ce3dbf724247871874d978b3c2378cf81f6d214181ad0ed04a7cd1"
+  }
+}

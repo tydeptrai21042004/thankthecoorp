@@ -1,0 +1,24 @@
+order,session,family,experiment,part,methods,seeds,estimated_hours_2xT4,standalone_sh,output_zip,purpose
+1,A01,Ablation,DTD / ResNet-18 ablation + hyper,all 3 seeds,30 variants,"0,1,2",7.5,ablation_hyper/A01_dtd_r18_ablation_hyper_3seed.sh,A01_results.zip,ablation_hyper
+2,A02,Ablation,Flowers102 / EfficientNet-B0 ablation + hyper,all 3 seeds,30 variants,"0,1,2",9.0,ablation_hyper/A02_flowers_b0_ablation_hyper_3seed.sh,A02_results.zip,ablation_hyper
+3,P01,CNN bundle,Updated proposal in existing CNN experiments,5 targets,WHC proposal only,"0,1,2",7.4,proposal_only/P01_existing_cnn_proposal_only_bundle.sh,P01_results.zip,existing_experiment_proposal_only
+4,P02,Dense bundle,Updated proposal in existing binary dense experiments,4 targets,WHC proposal only,"0,1,2",10.4,proposal_only/P02_existing_dense_proposal_only_bundle.sh,P02_results.zip,existing_experiment_proposal_only
+5,P03,ViT bundle,Updated proposal in existing ViT experiments,Flowers BS16+32 + VTAB-Caltech,WHC proposal only,"tune42 + 0,1,2",9.0,proposal_only/P03_existing_vit_proposal_only_bundle.sh,P03_results.zip,existing_experiment_proposal_only
+6,C01,CNN,DTD / ResNet-50 / 100ep / BS128 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",10.3,cnn_full/C01_dtd_r50_100ep_all_methods.sh,C01_results.zip,full_old_package
+7,C02,CNN,Flowers102 / ResNet-50 / 100ep / BS128 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",5.8,cnn_full/C02_flowers_r50_100ep_all_methods.sh,C02_results.zip,full_old_package
+8,C03,CNN,Flowers102 / ResNet-18 / 100ep / BS64 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",3.2,cnn_full/C03_flowers_r18_100ep_bs64_all_methods.sh,C03_results.zip,full_old_package
+9,C04,CNN,Flowers102 / ResNet-18 / 100ep / BS32 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",4.0,cnn_full/C04_flowers_r18_100ep_bs32_all_methods.sh,C04_results.zip,full_old_package
+10,C05,CNN,Oxford-IIIT Pet / EfficientNet-B0 / 10ep / BS64 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",1.5,cnn_full/C05_pet_b0_10ep_all_methods.sh,C05_results.zip,full_old_package
+11,C06,CNN,Oxford-IIIT Pet / EfficientNet-B0 / 100ep / BS64 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",10.0,cnn_full/C06_pet_b0_100ep_all_methods.sh,C06_results.zip,full_old_package
+12,C07,CNN,EuroSAT / MobileNetV3-Small / 25ep / BS32 — all 9 methods,all methods,"linear,bitfit,ssf,dt1d,bam,lora_conv,residual,conv_r4,full","0,1,2",11.4,cnn_full/C07_eurosat_mnv3_25ep_all_methods.sh,C07_results.zip,full_old_package
+13,C08,CNN,SVHN / ResNet-50 / 10ep / BS128 — split 1/3 (would exceed 12h as one session),split; <=12h,"full,linear,bitfit","0,1,2",11.8,cnn_full/C08_svhn_r50_part1of3.sh,C08_results.zip,full_old_package
+14,C09,CNN,SVHN / ResNet-50 / 10ep / BS128 — split 2/3,split; <=12h,"bam,lora_conv,residual","0,1,2",11.7,cnn_full/C09_svhn_r50_part2of3.sh,C09_results.zip,full_old_package
+15,C10,CNN,SVHN / ResNet-50 / 10ep / BS128 — split 3/3,split; <=12h,"ssf,dt1d,conv_r4","0,1,2",11.5,cnn_full/C10_svhn_r50_part3of3.sh,C10_results.zip,full_old_package
+16,C11,CNN,Food-101 / EfficientNet-B0 / 10ep / BS64 — split 1/2 (all methods would exceed 12h),split; <=12h,"linear,bitfit,ssf,dt1d,bam","0,1,2",11.73,cnn_full/C11_food101_b0_part1of2.sh,C11_results.zip,full_old_package
+17,C12,CNN,Food-101 / EfficientNet-B0 / 10ep / BS64 — split 2/2,split; <=12h,"lora_conv,residual,conv_r4,full","0,1,2",9.87,cnn_full/C12_food101_b0_part2of2.sh,C12_results.zip,full_old_package
+18,C13,CNN,Food-101 / ResNet-18 / 10ep / BS32 — split 1/2 (all methods would exceed 12h),split; <=12h,"linear,bitfit,ssf,dt1d,bam","0,1,2",10.33,cnn_full/C13_food101_r18_part1of2.sh,C13_results.zip,full_old_package
+19,C14,CNN,Food-101 / ResNet-18 / 10ep / BS32 — split 2/2,split; <=12h,"lora_conv,residual,conv_r4,full","0,1,2",8.67,cnn_full/C14_food101_r18_part2of2.sh,C14_results.zip,full_old_package
+20,D01,Dense,Oxford-IIIT Pet semantic / DeepLabV3-MobileNetV3 / 5ep / BS8,all 9 methods,9 methods,"0,1,2",7.0,dense_full/D01_semantic_pet_deeplab_all9.sh,D01_results.zip,full_old_package
+21,D02,Dense,Oxford-IIIT Pet detection / Faster R-CNN MobileNetV3-FPN / 1ep / BS1,all 9 methods,9 methods,"0,1,2",7.5,dense_full/D02_detection_pet_fasterrcnn_all9.sh,D02_results.zip,full_old_package
+22,V01,ViT,VTAB-DTD / ViT-B/16 / BS32,all 5 methods,"whc_dt1d,vpt,pfeiffer,full,linear","tune42 + 0,1,2",11.5,vit_full/V01_vtab_dtd_all5_methods.sh,V01_results.zip,full_old_package
+23,V02,ViT,VTAB-EuroSAT / ViT-B/16 / BS32,all 5 methods,"whc_dt1d,vpt,pfeiffer,full,linear","tune42 + 0,1,2",11.5,vit_full/V02_vtab_eurosat_all5_methods.sh,V02_results.zip,full_old_package
